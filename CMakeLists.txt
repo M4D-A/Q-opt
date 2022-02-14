@@ -3,4 +3,4 @@ project(Q_opt)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Q_opt main.cpp)
+add_executable(Q_opt main.cpp Circuit.cpp Circuit.h)

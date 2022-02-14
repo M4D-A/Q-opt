@@ -1,3 +1,9 @@
 # Project exclude paths
 /cmake-build-debug-wsl/
 /CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+/Q_opt
+/Q_opt.cbp
+/sth.txt
