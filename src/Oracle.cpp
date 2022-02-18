@@ -1,47 +1,64 @@
 //
 // Created by M4DA - Adam Jagielski, jagielski.adamm@gmail.com
 //
-
-#include <algorithm>
-#include "Oracle.h"
-#include "Auxiliary.h"
+#include "../headers/Oracle.h"
 
 Oracle::Oracle(const std::string &filename) : Circuit(filename) {}
 
 Oracle::Oracle(const std::vector<std::vector<int>> &operations) : Circuit(operations) {}
 
-std::vector<std::vector<int>> Oracle::line_matches(std::vector<int>::iterator template_start,
-                                                   std::vector<int>::iterator template_end) {
-    auto template_size = template_end - template_start;
-    std::vector<std::vector<int>> matches;
-    int line_num = 0;
-    for (std::vector<int> line: lines) {
-        auto line_start = line.begin();
-        auto line_end = line.end();
+std::vector<LineMatch>
+Oracle::line_matches(Template template_, ulong line_index, ulong threshold) {
+    std::vector<LineMatch> aaa;
 
-        auto line_slice_start = line_start;
-        auto line_slice_end = line_slice_start + template_size;
+    auto template_line = template_.get_line(line_index);
+    auto t_line_size = template_line.size();
+    auto t_line_start = template_line.begin();
+    auto t_line_end = template_line.end();
 
-        for (; line_slice_end <= line_end; ++line_slice_start, ++line_slice_end) {
-            auto xor_values = Auxiliary::xor_vectors(line_slice_start, line_slice_end,
-                                                     template_start, template_end);
+    for (std::size_t i = 0u; i < lines.size(); ++i) {
+        auto oracle_line = lines[i];
+        auto o_line_start = oracle_line.begin();
+        for (std::size_t j = 0u; j < oracle_line.size() - t_line_size; ++j) {
+            auto o_slice_start = o_line_start + j;
+            auto o_slice_end = o_slice_start + t_line_size;
+            auto xorrr = Auxiliary::xor_vectors(t_line_start, t_line_end, o_slice_start, o_slice_end);
 
-            bool zeros = std::all_of(xor_values.begin(), xor_values.end(), [](int i) { return i == 0; });
-
-            if (zeros) {
-                auto match_start_index = line_slice_start - line_start;
-                auto match_end_index = line_slice_end - line_start;
-
-                auto match = std::vector<int>(3);
-                match[0] = line_num;
-                match[1] = match_start_index;
-                match[2] = match_end_index;
-                matches.push_back(match);
+            bool loops = (*xorrr.begin() == 0) && (*(xorrr.end()-1) == 0);
+            bool sequence = false;
+            ulong max_start = 0;
+            ulong max_length = 0;
+            ulong current_start = 0;
+            ulong current_length = 0;
+            for(std::size_t k = 0u; k<xorrr.size(); ++k){
+                if(xorrr[k] == 0){
+                    if(current_length == 0){
+                        current_start = k;
+                        current_length = 1;
+                    }
+                    else {
+                        ++current_length;
+                    }
+                }
+                else{
+                    if(current_length == 0){
+                        continue;
+                    }
+                    else {
+                        if(current_length > max_length){
+                            max_length = current_length;
+                            max_start = current_start;
+                        }
+                    }
+                }
             }
+
+
+
         }
-        line_num++;
     }
-    return matches;
+
+    return aaa;
 }
 
 

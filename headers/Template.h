@@ -5,7 +5,6 @@
 #ifndef Q_OPT_TEMPLATE_H
 #define Q_OPT_TEMPLATE_H
 
-
 #include "Circuit.h"
 
 class Template : public Circuit {
@@ -14,7 +13,7 @@ public:
 
     explicit Template(const std::string &filename);
 
-    std::vector<int> get_line(long line_index);
+    std::vector<int> get_line(ulong line_index);
 };
 
 

@@ -7,14 +7,7 @@
 #include <sstream>
 #include <iterator>
 #include <fstream>
-#include "Circuit.h"
-
-#define EMPTY 0
-#define NOT_X 1
-#define CNOT_X 2
-#define TOFF_X 3
-#define CNOT_C 4
-#define TOFF_C 5
+#include "../headers/Circuit.h"
 
 Circuit::Circuit(const std::vector<std::vector<int>> &new_operations) : operations(new_operations) {
     init(new_operations);
