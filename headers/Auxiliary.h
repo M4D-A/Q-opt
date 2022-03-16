@@ -9,13 +9,15 @@
 
 class Auxiliary {
 public:
-    static std::vector<int> xor_vectors(std::vector<int>::iterator a_start,
-                                        std::vector<int>::iterator a_stop,
-                                        std::vector<int>::iterator b_start,
-                                        std::vector<int>::iterator b_stop
+    static std::vector<ulong> xor_vectors(std::vector<ulong>::iterator a_start,
+                                        std::vector<ulong>::iterator a_stop,
+                                        std::vector<ulong>::iterator b_start,
+                                        std::vector<ulong>::iterator b_stop
     );
 
-    static void longest_zero_subsequence(std::vector<int> vec);
+    static std::vector<ulong> longest_zero_subsequence(std::vector<ulong> vec);
+
+    static void print_vec(std::vector<ulong>::iterator begin, std::vector<ulong>::iterator end);
 };
 
 #endif //Q_OPT_AUXILIARY_H

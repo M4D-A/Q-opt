@@ -9,7 +9,7 @@
 #include <fstream>
 #include "../headers/Circuit.h"
 
-Circuit::Circuit(const std::vector<std::vector<int>> &new_operations) : operations(new_operations) {
+Circuit::Circuit(const std::vector<std::vector<ulong>> &new_operations) : operations(new_operations) {
     init(new_operations);
 }
 
@@ -18,7 +18,7 @@ Circuit::Circuit(const std::string &filename) {
     std::string line;
     while (getline(fin, line)) {
         std::stringstream ls{line};
-        std::vector<int> vec;
+        std::vector<ulong> vec;
         std::copy(std::istream_iterator<int>(ls),
                   std::istream_iterator<int>(),
                   std::back_inserter(vec)
@@ -28,21 +28,25 @@ Circuit::Circuit(const std::string &filename) {
     init(operations);
 }
 
-void Circuit::init(const std::vector<std::vector<int>> &new_operations) {
-    int lines_number = 0;
-    for (std::vector<int> operation: new_operations) {
-        int operation_max = *std::max_element(operation.begin(), operation.end());
+void Circuit::init(const std::vector<std::vector<ulong>> &new_operations) {
+    operation_ids = std::vector<ulong>(new_operations.size());
+
+    ulong lines_number = 0;
+    for (ulong i = 0; i < new_operations.size(); ++i) {
+        ulong operation_max = *std::max_element(new_operations[i].begin(), new_operations[i].end());
         lines_number = std::max(lines_number, operation_max);
+        operation_ids[i] = new_operations[i].size();
     }
+
     lines_number += 1;
-    lines = std::vector<std::vector<int>>(lines_number);
+    lines = std::vector<std::vector<ulong>>(lines_number);
 
     for (int i = 0; i < lines_number; i++) {
-        lines[i] = std::vector<int>(new_operations.size(), 0);
+        lines[i] = std::vector<ulong>(new_operations.size(), 0);
     }
 
     int i = 0;
-    for (std::vector<int> operation: new_operations) {
+    for (auto operation: new_operations) {
         switch (operation.size()) {
             case 1: {
                 lines[operation[0]][i] = NOT_X;
@@ -64,12 +68,12 @@ void Circuit::init(const std::vector<std::vector<int>> &new_operations) {
     }
 }
 
-void Circuit::add_operation(const std::vector<int> &new_operation) {
+void Circuit::add_operation(const std::vector<ulong> &new_operation) {
     if (!new_operation.empty() && new_operation.size() <= 3) {
         operations.push_back(new_operation);
     }
 
-    for (std::vector<int> &line: lines) {
+    for (auto &line: lines) {
         line.push_back(EMPTY);
     }
 
@@ -95,7 +99,7 @@ void Circuit::add_operation(const std::vector<int> &new_operation) {
 }
 
 void Circuit::print_operations() {
-    for (const std::vector<int> &operation: operations) {
+    for (const auto &operation: operations) {
         switch (operation.size()) {
             case 1:
                 std::cout << "N: " << operation[0];
@@ -119,9 +123,9 @@ void Circuit::print_lines(bool verbose) {
     std::cout << std::endl;
 
     int i = 0;
-    for (const std::vector<int> &line: lines) {
+    for (const auto &line: lines) {
         std::cout << i << ": ";
-        for (int block: line) {
+        for (ulong block: line) {
             if (verbose) {
                 std::cout << block;
             } else
@@ -147,5 +151,21 @@ void Circuit::print_lines(bool verbose) {
         std::cout << std::endl;
         ++i;
     }
+}
+
+void Circuit::print_operation_ids() {
+    std::cout << "G: ";
+    for (auto G: operation_ids) {
+        std::cout << G << "-";
+    }
+    std::cout << std::endl;
+}
+
+std::vector<ulong> Circuit::get_operation_ids() {
+    return operation_ids;
+}
+
+std::vector<std::vector<ulong>> Circuit::get_lines() {
+    return lines;
 }
 

@@ -9,12 +9,9 @@
 
 class Template : public Circuit {
 public:
-    explicit Template(const std::vector<std::vector<int>> &operations);
+    explicit Template(const std::vector<std::vector<ulong>> &operations);
 
     explicit Template(const std::string &filename);
-
-    std::vector<int> get_line(ulong line_index);
 };
-
 
 #endif //Q_OPT_TEMPLATE_H

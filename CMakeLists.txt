@@ -3,7 +3,11 @@ project(Q_opt)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Q_opt main.cpp
+add_executable(
+        Q_opt
+        main.cpp
         src/Circuit.cpp headers/Circuit.h
         src/Oracle.cpp headers/Oracle.h
-        src/Auxiliary.cpp headers/Auxiliary.h src/Template.cpp headers/Template.h src/LineMatch.cpp headers/LineMatch.h)
+        src/Auxiliary.cpp headers/Auxiliary.h
+        src/Template.cpp headers/Template.h
+)
