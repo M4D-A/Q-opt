@@ -12,7 +12,7 @@ int main() {
     Oracle o("oracle.qc");
     Template t("template.qc");
     ulong initial_shift = 0;
-    long delta_threshold = 6; //max acceptable loss
+    long delta_threshold = 1; //max acceptable loss
 
     {
     //"++++++++++++++++++++++++++++++++   LOG   +++++++++++++++++++++++++++++++++++"//
@@ -33,8 +33,6 @@ int main() {
 
     auto oracle_gates_begin = oracle_gates.begin() + initial_shift;
     auto oracle_gates_end   = oracle_gates_begin + template_gates_length;
-    auto template_gates_begin = template_gates.begin() + initial_shift;
-    auto template_gates_end   = template_gates.end();
 
     auto oracle_lines = o.get_lines();
     auto template_lines = t.get_lines();
@@ -49,45 +47,15 @@ int main() {
     ulong initial_substitution_length = template_gates_length - initial_match_length;
     long initial_delta = initial_substitution_length - initial_match_length; // delta > 0 = bad, delta < 0 = good
 
-//"++++++++++++++++++++++++++++++++   LOG   +++++++++++++++++++++++++++++++++++"//
-    {
-        std::cout << "Initial Oracle match start:   " << initial_oracle_match_start << std::endl;
-        std::cout << "Initial Template match start: " << initial_template_match_start << std::endl;
-        std::cout << "Initial Match length:         " << initial_match_length << std::endl;
-        std::cout << "Initial Substitution length:  " << initial_substitution_length << std::endl;
-        std::cout << "Initial Delta:                " << initial_delta << std::endl;
-
-        std::cout << std::endl;
-
-        if (initial_delta > delta_threshold) {
-            std::cout << "Bad match at gate" << std::endl;
-            return 0;
-        }
-        for (auto &t_line: oracle_lines) {
-            auto t_slice_begin = t_line.begin() + initial_oracle_match_start;
-            auto t_slice_end = t_slice_begin + initial_match_length;
-            Auxiliary::print_vec(t_slice_begin, t_slice_end);
-        }
-        std::cout << std::endl;
-
-        for (auto &t_line: template_lines) {
-            auto t_slice_begin = t_line.begin() + initial_template_match_start;
-            auto t_slice_end = t_slice_begin + initial_match_length;
-            Auxiliary::print_vec(t_slice_begin, t_slice_end);
-        }
-        std::cout << std::endl;
-    }
-//"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"//
-
     std::vector<ulong> assignment;
-    ulong final_template_match_begin;
-    ulong final_template_match_end;
-    ulong final_oracle_match_begin;
-    ulong final_oracle_match_end;
+    ulong final_template_match_start;
+    ulong final_oracle_match_start;
+    ulong final_match_length;
 
     ulong cut = 0;
     long delta = initial_delta;
-    while(delta < delta_threshold && (initial_match_length - cut) > 0){ //// cut
+    bool full_match = false;
+    while(delta <= delta_threshold && (initial_match_length - cut) > 0 && !full_match){ //// cut
         for(ulong cut_shift = 0; cut_shift <= cut; cut_shift++){ //// cut_shift
 
             ulong template_slice_begin_index = initial_template_match_start + cut_shift;
@@ -98,20 +66,16 @@ int main() {
             std::vector<ulong> current_assignment(template_lines.size(), -1);
 
             ///matching start
+            bool line_matched = false;
             for(ulong i = 0; i < template_lines.size(); ++i) { //// t_line
-                bool line_matched = false;
+                line_matched = false;
                 auto template_line_begin = template_lines[i].begin();
                 auto template_line_slice_begin = template_line_begin + template_slice_begin_index;
                 auto template_line_slice_end = template_line_begin + template_slice_end_index;
-                std::cout<<"____"<<std::endl;
-                Auxiliary::print_vec(template_line_slice_begin, template_line_slice_end);
-                std::cout<<"____"<<std::endl;
                 for (ulong j = 0; j < oracle_lines.size(); ++j) { //// o_line
                     auto oracle_line_begin = oracle_lines[j].begin();
                     auto oracle_line_slice_begin = oracle_line_begin + oracle_slice_begin_index;
                     auto oracle_line_slice_end = oracle_line_begin + oracle_slice_end_index;
-
-                    Auxiliary::print_vec(oracle_line_slice_begin, oracle_line_slice_end);
 
                     bool found = std::equal(template_line_slice_begin, template_line_slice_end, oracle_line_slice_begin, oracle_line_slice_end);
                     bool unused = std::find(current_assignment.begin(), current_assignment.end(), j) == current_assignment.end();
@@ -121,32 +85,44 @@ int main() {
                         current_assignment[i] = j;
                         break;
                     }
-
                 }
-                std::cout<<std::endl;
                 if(!line_matched){ ///t_line unmatchable
                     break;
                 }
             }
-            ///matching end
-
-            for(ulong i = 0; i<current_assignment.size(); ++i) {
-                std::cout << i << ": " << current_assignment[i] << std::endl;
+            if(line_matched){
+                full_match = true;
+                assignment = current_assignment;
+                final_template_match_start = initial_template_match_start + cut_shift;
+                final_oracle_match_start = initial_oracle_match_start + cut_shift;
+                final_match_length = initial_match_length - cut;
+                break;
             }
-            //// CHECK FULL MATCH
-
-
         }
         cut += 1;
         delta += 2;
     }
 
+    if(full_match) {
+        std::cout << "Final Oracle match start:   " << final_oracle_match_start << std::endl;
+        std::cout << "Final Template match start: " << final_template_match_start << std::endl;
+        std::cout << "Final Match length:         " << final_match_length << std::endl;
+        std::cout << std::endl;
+        for (int i = 0; i < assignment.size(); i++) {
+            auto test_template_start = template_lines[i].begin() + final_template_match_start;
+            auto test_template_end = test_template_start + final_match_length;
 
-    std::cout<<std::endl;
-    ////asd////
+            auto oracle_index = assignment[i];
+            auto test_oracle_start = oracle_lines[oracle_index].begin() + final_oracle_match_start;
+            auto test_oracle_end = test_oracle_start + final_match_length;
 
-
-    std::cout<<std::endl;
-
-
+            std::cout << i << ": " << oracle_index << std::endl;
+            Auxiliary::print_vec(test_template_start, test_template_end);
+            Auxiliary::print_vec(test_oracle_start, test_oracle_end);
+            std::cout << std::endl;
+        }
+    }
+    else{
+        std::cout << "Matching Failed" << std::endl;
+    }
 }
