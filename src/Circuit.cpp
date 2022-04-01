@@ -7,60 +7,61 @@
 #include <sstream>
 #include <iterator>
 #include <fstream>
+#include <utility>
 #include "../headers/Circuit.h"
 
-Circuit::Circuit(const std::vector<std::vector<ulong>> &new_operations) : operations(new_operations) {
-    init(new_operations);
+Circuit::Circuit(std::vector<std::vector<long>> new_operations) : operations(std::move(new_operations)) {
+    init();
 }
 
 Circuit::Circuit(const std::string &filename) {
-    std::ifstream fin(filename);
+    std::ifstream input_file(filename);
     std::string line;
-    while (getline(fin, line)) {
-        std::stringstream ls{line};
-        std::vector<ulong> vec;
-        std::copy(std::istream_iterator<int>(ls),
-                  std::istream_iterator<int>(),
-                  std::back_inserter(vec)
+    while (getline(input_file, line)) {
+        std::stringstream line_stream{line};
+        std::vector<long> uint_vector;
+        std::copy(std::istream_iterator<long>(line_stream),
+                  std::istream_iterator<long>(),
+                  std::back_inserter(uint_vector)
         );
-        operations.push_back(vec);
+        operations.push_back(uint_vector);
     }
-    init(operations);
+    init();
 }
 
-void Circuit::init(const std::vector<std::vector<ulong>> &new_operations) {
-    operation_ids = std::vector<ulong>(new_operations.size());
+void Circuit::init() {
+    gate_line = std::vector<long>(operations.size());
 
     ulong lines_number = 0;
-    for (ulong i = 0; i < new_operations.size(); ++i) {
-        ulong operation_max = *std::max_element(new_operations[i].begin(), new_operations[i].end());
+    for (ulong i = 0; i < operations.size(); ++i) {
+        ulong operation_max = *std::max_element(operations[i].begin(), operations[i].end());
         lines_number = std::max(lines_number, operation_max);
-        operation_ids[i] = new_operations[i].size();
+        gate_line[i] = (long)operations[i].size();
     }
 
     lines_number += 1;
-    lines = std::vector<std::vector<ulong>>(lines_number);
+    block_lines = std::vector<std::vector<long>>(lines_number);
 
     for (int i = 0; i < lines_number; i++) {
-        lines[i] = std::vector<ulong>(new_operations.size(), 0);
+        block_lines[i] = std::vector<long>(operations.size(), 0);
     }
 
     int i = 0;
-    for (auto operation: new_operations) {
+    for (auto operation: operations) {
         switch (operation.size()) {
             case 1: {
-                lines[operation[0]][i] = NOT_X;
+                block_lines[operation[0]][i] = NOT_X;
                 break;
             }
             case 2: {
-                lines[operation[0]][i] = CNOT_X;
-                lines[operation[1]][i] = CNOT_C;
+                block_lines[operation[0]][i] = CNOT_X;
+                block_lines[operation[1]][i] = CNOT_C;
                 break;
             }
             case 3: {
-                lines[operation[0]][i] = TOFF_X;
-                lines[operation[1]][i] = TOFF_C;
-                lines[operation[2]][i] = TOFF_C;
+                block_lines[operation[0]][i] = TOFF_X;
+                block_lines[operation[1]][i] = TOFF_C;
+                block_lines[operation[2]][i] = TOFF_C;
                 break;
             }
         }
@@ -68,31 +69,41 @@ void Circuit::init(const std::vector<std::vector<ulong>> &new_operations) {
     }
 }
 
-void Circuit::add_operation(const std::vector<ulong> &new_operation) {
+void Circuit::add_operation(const std::vector<long> &new_operation) {
     if (!new_operation.empty() && new_operation.size() <= 3) {
         operations.push_back(new_operation);
     }
+    else{
+        return;
+    }
 
-    for (auto &line: lines) {
+    ulong current_line_length = block_lines[0].size();
+    ulong max_line = *std::max_element(new_operation.begin(), new_operation.end());
+
+    while(block_lines.size() <= max_line){
+        block_lines.emplace_back(current_line_length, EMPTY);
+    }
+
+    for (auto &line: block_lines) {
         line.push_back(EMPTY);
     }
 
     unsigned int last_layer = operations.size() - 1;
 
-    switch (new_operation.size()) {
-        case 1: {
-            lines[new_operation[0]][last_layer] = NOT_X;
+    switch (new_operation.size() - 1) {
+        case NOT: {
+            block_lines[new_operation[0]][last_layer] = NOT_X;
             break;
         }
-        case 2: {
-            lines[new_operation[0]][last_layer] = CNOT_X;
-            lines[new_operation[1]][last_layer] = CNOT_C;
+        case CNOT: {
+            block_lines[new_operation[0]][last_layer] = CNOT_X;
+            block_lines[new_operation[1]][last_layer] = CNOT_C;
             break;
         }
-        case 3: {
-            lines[new_operation[0]][last_layer] = TOFF_X;
-            lines[new_operation[1]][last_layer] = TOFF_C;
-            lines[new_operation[2]][last_layer] = TOFF_C;
+        case TOFF: {
+            block_lines[new_operation[0]][last_layer] = TOFF_X;
+            block_lines[new_operation[1]][last_layer] = TOFF_C;
+            block_lines[new_operation[2]][last_layer] = TOFF_C;
             break;
         }
     }
@@ -115,7 +126,13 @@ void Circuit::print_operations() {
     }
 }
 
-void Circuit::print_lines(bool verbose) {
+void Circuit::print(bool verbose) {
+    std::cout << "---";
+    for (auto G: gate_line) {
+        std::cout << "--";
+    }
+    std::cout << std::endl;
+
     std::cout << "   ";
     for (int i = 0; i < operations.size(); ++i) {
         std::cout << i << " ";
@@ -123,7 +140,7 @@ void Circuit::print_lines(bool verbose) {
     std::cout << std::endl;
 
     int i = 0;
-    for (const auto &line: lines) {
+    for (const auto &line: block_lines) {
         std::cout << i << ": ";
         for (ulong block: line) {
             if (verbose) {
@@ -151,21 +168,29 @@ void Circuit::print_lines(bool verbose) {
         std::cout << std::endl;
         ++i;
     }
-}
 
-void Circuit::print_operation_ids() {
+    std::cout << "---";
+    for (auto G: gate_line) {
+        std::cout << "--";
+    }
+    std::cout << std::endl;
+
     std::cout << "G: ";
-    for (auto G: operation_ids) {
+    for (auto G: gate_line) {
         std::cout << G << "-";
     }
     std::cout << std::endl;
 }
 
-std::vector<ulong> Circuit::get_operation_ids() {
-    return operation_ids;
+std::vector<long> Circuit::get_operation_ids() {
+    return gate_line;
 }
 
-std::vector<std::vector<ulong>> Circuit::get_lines() {
-    return lines;
+std::vector<std::vector<long>> Circuit::get_block_lines() {
+    return block_lines;
+}
+
+Circuit::Circuit() {
+    init();
 }
 

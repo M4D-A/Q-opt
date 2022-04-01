@@ -26,31 +26,31 @@ enum block {
 class Circuit {
 
 protected:
-    std::vector<std::vector<ulong>> operations;
+    std::vector<std::vector<long>> operations;
 
-    std::vector<ulong> operation_ids;
+    std::vector<long> gate_line;
 
-    std::vector<std::vector<ulong>> lines;
+    std::vector<std::vector<long>> block_lines;
 
-    void init(const std::vector<std::vector<ulong>> &operations);
+    void init();
 
 
 public:
-    explicit Circuit(const std::vector<std::vector<ulong>> &operations);
+    explicit Circuit(std::vector<std::vector<long>> operations);
 
     explicit Circuit(const std::string &filename);
 
-    void add_operation(const std::vector<ulong> &new_operation);
+    explicit Circuit();
+
+    void add_operation(const std::vector<long> &new_operation);
 
     void print_operations();
 
-    std::vector<ulong> get_operation_ids();
+    std::vector<long> get_operation_ids();
 
-    std::vector<std::vector<ulong>> get_lines();
+    std::vector<std::vector<long>> get_block_lines();
 
-    void print_lines(bool verbose = false);
-
-    void print_operation_ids();
+    void print(bool verbose = false);
 };
 
 #endif //Q_OPT_CIRCUIT_H

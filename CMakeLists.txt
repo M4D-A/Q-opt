@@ -8,6 +8,5 @@ add_executable(
         main.cpp
         src/Circuit.cpp headers/Circuit.h
         src/Oracle.cpp headers/Oracle.h
-        src/Auxiliary.cpp headers/Auxiliary.h
         src/Template.cpp headers/Template.h
-)
+        src/Match.cpp headers/Match.h)
