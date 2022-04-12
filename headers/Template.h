@@ -9,7 +9,7 @@
 
 class Template : public Circuit {
 public:
-    explicit Template(const std::vector<std::vector<ulong>> &operations);
+    explicit Template(const std::vector<std::vector<long>> &operations);
 
     explicit Template(const std::string &filename);
 };

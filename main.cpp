@@ -7,8 +7,7 @@
 
 int main() {
     Oracle o("oracle.qc");
-    Template t("template.qc");
-    Match m = o.match_template(&t, 6,5);
-    m.print();
-
+    o.print(true);
+    o.replace_operation({1,3},0);
+    o.print(true);
 }

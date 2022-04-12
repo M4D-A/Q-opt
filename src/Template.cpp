@@ -4,6 +4,6 @@
 
 #include "../headers/Template.h"
 
-Template::Template(const std::vector<std::vector<ulong>> &operations) : Circuit(operations) {}
+Template::Template(const std::vector<std::vector<long>> &operations) : Circuit(operations) {}
 
 Template::Template(const std::string &filename) : Circuit(filename) {}

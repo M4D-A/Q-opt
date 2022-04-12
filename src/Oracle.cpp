@@ -67,7 +67,7 @@ Match Oracle::match_template(Template* template_, long initial_shift, long delta
             long oracle_slice_begin_index = oracle_gate_match_begin_index + slice_shift;
             long oracle_slice_end_index = oracle_slice_begin_index + slice_length;
 
-            ///matching start
+            ///<Current slice matching>
             std::vector<long> assignment(template_block_lines.size(), -1);
             for(long i = 0; i < template_block_lines.size(); ++i) { //// t_line
                 bool line_matched = false;
@@ -99,11 +99,12 @@ Match Oracle::match_template(Template* template_, long initial_shift, long delta
                     break;
                 }
             }
+            ///</Current slice matching>
 
             full_match = std::all_of(assignment.begin(),
                                      assignment.end(),
                                      [](int i){return i > -1;}
-                                     );
+                                     ); ///verify match
 
             if(full_match){
                 found_match.setFound(true);
@@ -114,7 +115,9 @@ Match Oracle::match_template(Template* template_, long initial_shift, long delta
                 found_match.setMatchLength(gate_match_length - cut_length);
                 break;
             }
+            ///Shift slice
         }
+        ///Shorten slice
         cut_length += 1;
         delta += 2;
     }

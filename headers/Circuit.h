@@ -26,6 +26,7 @@ enum block {
 class Circuit {
 
 protected:
+
     std::vector<std::vector<long>> operations;
 
     std::vector<long> gate_line;
@@ -44,13 +45,23 @@ public:
 
     void add_operation(const std::vector<long> &new_operation);
 
-    void print_operations();
+    void insert_operation(const std::vector<long> &new_operation, long index);
+
+    void replace_operation(const std::vector<long> &new_operation, long index);
+
+    long get_length();
+
+    long get_width();
 
     std::vector<long> get_operation_ids();
 
     std::vector<std::vector<long>> get_block_lines();
 
+    void print_operations();
+
     void print(bool verbose = false);
+
+    static bool validate_operation(std::vector<long> operation);
 };
 
 #endif //Q_OPT_CIRCUIT_H
